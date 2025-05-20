@@ -9,6 +9,7 @@ import com.example.mynotes.domain.usecase.InsertUseCase
 import com.example.mynotes.domain.usecase.UpdateUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -20,11 +21,13 @@ class MainViewModel @Inject constructor(
     private val updateUseCase: UpdateUseCase,
     private val getAllNotesUseCase: GetAllNotesUseCase
 ) : ViewModel() {
-    val uiState = getAllNotesUseCase.invoke().stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.Eagerly,
-        initialValue = UiState()
-    )
+    val uiState = getAllNotesUseCase.invoke()
+        .map { UiState(it) }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.Eagerly,
+            initialValue = UiState()
+        )
 
     fun insertNote(note: Note) = viewModelScope.launch {
         insertUseCase.invoke(note = note)
