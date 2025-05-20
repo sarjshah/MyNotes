@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.ModalBottomSheetLayout
@@ -57,7 +58,9 @@ fun MainScreen(viewModel: MainViewModel) {
     }
 
     val scope = rememberCoroutineScope()
+
     ModalBottomSheetLayout(
+        modifier = Modifier.safeContentPadding(),
         sheetContent = {
             Form(note = editNote) { title, description ->
                 if (isEdit) {
@@ -89,7 +92,9 @@ fun MainScreen(viewModel: MainViewModel) {
                     },
                     actions = {
                         IconButton(
-                            onClick = {}
+                            onClick = {
+                                scope.launch { sheetState.show() }
+                            }
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Add,
@@ -112,10 +117,15 @@ fun MainScreen(viewModel: MainViewModel) {
             } else {
                 Notes(
                     modifier = Modifier.padding(paddingValues),
-                    uiState.data,
-                    { viewModel.deleteNote(it) }) { note ->
+                    notes = uiState.data,
+                    onDeleteClick = {
+                        viewModel.deleteNote(it)
+                        isEdit = false
+                    }
+                ) { note ->
                     isEdit = true
                     editNote = note
+                    scope.launch { sheetState.show() }
                 }
 
             }
@@ -140,7 +150,7 @@ private fun Notes(
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 4.dp),
+                    .padding(8.dp),
                 onClick = {
                     onCardClick.invoke(note)
                 }
@@ -148,7 +158,7 @@ private fun Notes(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp),
+                        .padding(horizontal = 16.dp, vertical = 4.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
